@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppLoading } from 'expo';
 import * as Font from "expo-font";
@@ -12,6 +11,8 @@ import apolloClientOptions from './apollo';
 import { ApolloProvider } from 'react-apollo-hooks';
 import { ThemeProvider } from 'styled-components';
 import styles from './styles';
+import { AuthProvider } from './AuthContext';
+import NavController from "./components/NavController";
 
 export default function App() {
   const [loaded, setLoaded] = useState(false);
@@ -31,10 +32,10 @@ export default function App() {
         ...apolloClientOptions
       });
       const isLoggedIn = await AsyncStorage.getItem("isLoggedIn");
-      if (isLoggedIn) {
-        setIsLoggedIn(true);
-      } else {
+      if (!isLoggedIn || isLoggedIn === "false") {
         setIsLoggedIn(false);
+      } else {
+        setIsLoggedIn(true);
       }
       setLoaded(true);
       setClient(client);
@@ -45,12 +46,13 @@ export default function App() {
   useEffect(() => {
     preLoad();
   }, []);
+
   return loaded && client && isLoggedIn !== null ? (
     <ThemeProvider theme={styles}>
         <ApolloProvider client={client}>
-          <View>
-            {isLoggedIn ? <Text>I'm in</Text> : <Text>I'm out</Text>}
-          </View>
+        <AuthProvider isLoggedIn={isLoggedIn}>
+            <NavController />
+          </AuthProvider>
         </ApolloProvider>
     </ThemeProvider>
   ) : (
